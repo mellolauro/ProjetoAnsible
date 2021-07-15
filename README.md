@@ -18,6 +18,7 @@ Com a criação da estrutura o seu arquivo terraform.tfstate trará a chave publ
 Ansible
 
 arquivo - 000-defaut.conf (arquivo de configuração do apache.)
+
 https://gist.github.com/tjtoml/942d696c868b22a25259
 
 Arquivo generatepress (Thema(template do WordPress - dashborad))
