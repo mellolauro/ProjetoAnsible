@@ -1,0 +1,95 @@
+- hosts: all
+  handlers : 
+    - name : "restart do apache"
+      service:
+        name: apache2
+        state: restarted
+      become : yes
+
+    - name: "Instalando pacotes no servidor"
+      app: 
+        name: "{{ itens }}"
+        state: latest
+      become: yes # roda com sudo
+      with_items:
+        - php7.2
+        - apache2
+        - libapache-mod-php7.2
+        - php-mysql
+        - php-curl
+        - mysql-server
+        - python3-pycurl
+        - python3-mysqldb
+        - unzip
+        
+    - name: "download do wordpress"
+      get_url
+        url: "https://wordpress.org/latest.tar.gz"
+        dest: "/tmp/wordpress.tar.gz"
+
+    - name: "descompactando os arquivos WordPress"
+      unarchive:
+        src: "/tmp/wordpress.tar.gz"
+        dest: "/var/www"
+        remote_src: yes
+      become: yes
+
+    - name: "Copiando arquivo WordPress"
+      copy: 
+        src: '/var/www/wordpress/wp-config-sample.php'
+        dest: '/var/www/wordpress/wp-config-sample.php'
+        remote_src: yes
+      become: yes  
+
+    - name: "Configurando o wp-config com as senhas"
+      replace:
+        path: '/var/www/wordpress/wp-config.php'
+        regexp: "{{ item.regex }}"
+        replace: "{{ item.value }}"
+      with_items:
+        - { regex: 'nome_do_banco_de_dados', value: 'bd_wordpress' }
+        - { regex: 'nome_do_usuario', value: 'dbadmin' }
+        - { regex: 'senha', value: 'dbadmin1234' }
+      become: yes
+      
+      - name: " Trocando pastas do render apache com wordpress"
+        copy:
+          src: "apache/000-default.conf"
+          dest: "/etc/apache2/sites-available/000-default.conf"
+        become: yes
+        notify:
+          - "restart apache"  
+
+      - name: "startando servico mysql"
+        become: yes
+        service:
+          name: mysql
+          state: started
+          
+      - name: "Criação de senha root mysql"
+        become: yes
+        mysql_user:
+          name: admindb
+          host: localhost
+          password: dbuser1234
+          priv: "*.*:ALL.GRANT"
+
+      - name: "Startando BD MySQL"
+        mysql_db:
+          name: bd_wordpress
+          login_user: root
+          login_password: root
+          state: present
+
+      - name: "Copiando novo tema wp"
+          copy:
+            src: "thema/generatepress.3.0.4.zip"
+            dest: "/home/server/ProjetoAnsible/generatepress.3.0.4.zip"
+          become: yes
+
+      - name: "Descompactar na pasta do thema"
+          unarchive:
+            src: "/tmp/generatepress.3.0.4.zip"
+            dest: "/var/www/wordpress/wp-content/themes/"
+            remote_src: yes
+          become: yes 
