@@ -1,0 +1,8 @@
+resource_group_name         = "RG-Olimpiadas"
+resource_group_location     = "westus2"
+virtual_network_name        = "VNET-02"
+subnet_name                 = "SUB-LAN02"
+public_ip_name              = "PIP-VM-SRV02"
+network_security_group_name = "NSG-LNX"
+network_interface_name      = "nic-vm-srv02"
+linux_virtual_machine_name  = "VNET-02"
